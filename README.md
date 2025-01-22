@@ -1,2 +1,2 @@
 # coderkube-demo
-This is demo file
+This is demo repository
