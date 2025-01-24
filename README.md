@@ -28,7 +28,7 @@ Follow these steps to set up the project on your local machine:
 2. **Import the database or Set-up the database**
 * Import the db_schema.sql file into your MySQL server to create the required database and tables.
 * Example schema:
-CREATE TABLE tbl_user (
+<p>CREATE TABLE tbl_user (
     user_id INT(10) AUTO_INCREMENT PRIMARY KEY,
     user_name VARCHAR(100) UNIQUE NOT NULL,
     user_email VARCHAR(100) UNIQUE NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE tbl_user (
     user_type INT(1) NOT NULL,
     user_password VARCHAR(100) NOT NULL
 );
-
+</p>
 3. **Configure the Database Connection:**
 
 * Update the db_connect.php file with your MySQL credentials:
