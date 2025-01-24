@@ -15,9 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['user_id'])) {
     $stmt->bind_param("sssiis", $user_name, $user_email, $user_phone, $user_gender, $user_type, $user_id);
 
     if ($stmt->execute()) {
-        echo json_encode(["success" => true, "message" => "User updated successfully."]);
+        echo json_encode(["success" => true, "message" => "Updated successfully."]);
     } else {
-        echo json_encode(["success" => false, "message" => "Failed to update user."]);
+        echo json_encode(["success" => false, "message" => "Failed to Update."]);
     }
 
     $stmt->close();

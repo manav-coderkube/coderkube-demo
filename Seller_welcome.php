@@ -104,7 +104,6 @@ $(document).ready(function () {
         window.location.href = `edit_user.php?user_id=${userId}`; 
     });
 
-    
     $('#userTable').on('click', '.delete-btn', function () {
     const userId = $(this).data('id'); 
     if (confirm("Are you sure you want to delete this user?")) {

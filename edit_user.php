@@ -202,10 +202,10 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (response) {
                 if (response.success) {
-                    alert('User updated successfully!');
+                    alert('Updated successfully!');
                     window.location.href = 'Seller_welcome.php'; 
                 } else {
-                    alert('Error updating user: ' + response.message);
+                    alert('Error in updating: ' + response.message);
                 }
             },
             error: function () {
