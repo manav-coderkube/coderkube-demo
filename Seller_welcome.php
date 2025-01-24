@@ -65,21 +65,21 @@ $(document).ready(function() {
     // Fetch data using AJAX
     function fetchUserData() {
         $.ajax({
-            url: 'fetch_user.php', // URL to the server-side script
-            method: 'GET', // HTTP method
-            dataType: 'json', // Expected response type
+            url: 'fetch_user.php',
+            method: 'POST',
+            dataType: 'json',
             success: function(data) {
-                table.clear(); // Clear existing rows
-                let counter = 1; // Initialize row counter
+                table.clear();
+                let counter = 1;
                 data.forEach(user => {
                     table.row.add([
-                        counter++, // Serial number
+                        counter++,
                         user.user_name,
                         user.user_email,
                         user.user_phone,
                         user.user_gender,
                         user.user_type
-                    ]).draw(); // Add row to DataTable
+                    ]).draw();
                 });
             },
             error: function(xhr, status, error) {
@@ -89,7 +89,6 @@ $(document).ready(function() {
         });
     }
 
-    // Load user data on page load
     fetchUserData();
 });
 </script>

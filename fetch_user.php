@@ -18,12 +18,19 @@ $users = [];
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $row['user_gender'] = $row['user_gender'] == 0 ? "Male" : "Female";
-        $row['user_type'] = match ($row['user_type']) {
-            0 => "Admin",
-            1 => "User",
-            2 => "Seller",
-            default => "Unknown",
-        };
+        switch ($row['user_type']) {
+            case 0:
+                $row['user_type'] = "Admin";
+                break;
+            case 1:
+                $row['user_type'] = "User ";
+                break;
+            case 2:
+                $row['user_type'] = "Seller";
+                break;
+            default:
+                $row['user_type'] = "Unknown";
+        }
         $users[] = $row;
     }
 }
