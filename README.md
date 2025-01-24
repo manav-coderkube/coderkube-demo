@@ -41,6 +41,7 @@ Follow these steps to set up the project on your local machine:
 3. **Configure the Database Connection:**
 
 * Update the db_connect.php file with your MySQL credentials:
+<p>
 <?php
 $servername = "localhost";
 $username = "root";
@@ -53,7 +54,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 ?>
-
+</p>
 4. **Start the Server:**
 
 * Use a local server environment like XAMPP or WAMP.
