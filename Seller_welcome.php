@@ -41,6 +41,7 @@ $admin_name = $_SESSION['user_name'];
                 <th>Phone</th>
                 <th>Gender</th>
                 <th>Type</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -58,39 +59,86 @@ $admin_name = $_SESSION['user_name'];
 <script src="//cdn.datatables.net/2.2.1/js/dataTables.min.js"></script>
 
 <script>
-$(document).ready(function() {
-    // Initialize DataTable
-    let table = $('#userTable').DataTable();
-
-    // Fetch data using AJAX
-    function fetchUserData() {
-        $.ajax({
-            url: 'fetch_user.php',
-            method: 'POST',
-            dataType: 'json',
-            success: function(data) {
-                table.clear();
-                let counter = 1;
-                data.forEach(user => {
-                    table.row.add([
-                        counter++,
-                        user.user_name,
-                        user.user_email,
-                        user.user_phone,
-                        user.user_gender,
-                        user.user_type
-                    ]).draw();
-                });
+$(document).ready(function () {
+    $('#userTable').DataTable({
+        processing: true, 
+        serverSide: true, 
+        ajax: {
+            url: 'fetch_user.php', 
+            type: 'POST'
+        },
+        columns: [
+            {
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1; 
+                },
+                orderable: false 
             },
-            error: function(xhr, status, error) {
-                console.error("Error fetching data:", error);
-                alert("Failed to load user data.");
+            { data: 'user_name' }, 
+            { data: 'user_email' }, 
+            { data: 'user_phone' }, 
+            { data: 'user_gender' }, 
+            { data: 'user_type' },
+            {
+                data: null, 
+                orderable: false, 
+                render: function (data, type, row) {
+                    
+                    return `
+                        <button class="edit-btn" data-id="${row.user_id}" style="background-color: #4CAF50; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">Edit</button>
+                        <button class="delete-btn" data-id="${row.user_id}" style="background-color: #FF5733; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">Delete</button>
+                    `;
+                }
+            }
+        ],
+        paging: true, 
+        info: true, 
+        language: {
+            emptyTable: "No data available" 
+        }
+    });
+
+    
+    $('#userTable').on('click', '.edit-btn', function () {
+        const userId = $(this).data('id'); 
+        window.location.href = `edit_user.php?user_id=${userId}`; 
+    });
+
+    
+    $('#userTable').on('click', '.delete-btn', function () {
+    const userId = $(this).data('id'); 
+    if (confirm("Are you sure you want to delete this user?")) {
+        $.ajax({
+            url: 'delete_user.php', 
+            type: 'POST',
+            data: { user_id: userId },
+            success: function (response) {
+                try {
+                    const data = JSON.parse(response); 
+                    if (data.message) {
+                        alert(data.message); 
+                    } else {
+                        alert("Unexpected response: " + response); 
+                    }
+                    $('#userTable').DataTable().ajax.reload(); 
+                } catch (e) {
+                    alert("Error parsing response: " + e.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("An error occurred: " + error);
             }
         });
-    }
 
-    fetchUserData();
+    }else{
+        alert('Confirmation is not received.');
+    }
+});
+
 });
 </script>
+
+
+
 </body>
 </html>
