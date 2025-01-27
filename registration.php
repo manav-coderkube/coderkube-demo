@@ -20,8 +20,8 @@ if (isset($_SESSION['user_id']) || isset($_SESSION['user_type']) || isset($_SESS
 }
 
 // Initialize error messages and variables
-$nameErr = $emailErr = $mobilenoErr = $genderErr = $typeErr = $passwordErr = "";
-$name = $email = $mobileno = $gender = $type = $passw = "";
+$nameErr = $emailErr = $mobilenoErr = $genderErr = $typeErr = $passwordErr = $imageErr= "";
+$name = $email = $mobileno = $gender = $type = $image = $passw = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // PHP Validation
@@ -114,24 +114,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }  
     }
 
+    $image = $_FILES['user_image']['name'];
+    $targetDir = "uploads/";
+    $targetFile = $targetDir . basename($image);
+    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+
     // If no errors, proceed with inserting into the database
-    if (empty($nameErr) && empty($emailErr) && empty($mobilenoErr) && empty($genderErr) && empty($typeErr) && empty($passwordErr)) {
+    if (empty($imageErr) && empty($nameErr) && empty($emailErr) && empty($mobilenoErr) && empty($genderErr) && empty($typeErr) && empty($passwordErr)) {
         // Hash the password
         // $passw = password_hash($passw, PASSWORD_DEFAULT);
         
         // Insert into the database
-        $stmt = $conn->prepare("INSERT INTO tbl_user (user_name, user_email, user_phone, user_gender, user_type, user_password) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $name, $email, $mobileno, $gender, $type, $passw);
-
-        if ($stmt->execute()) {
-            header("Location: registration.php?register=success");
-            exit(); 
+        if (!move_uploaded_file($_FILES['user_image']['tmp_name'], $targetFile)) {
+            $itemsErr = "<p>Failed to upload the image. Please try again.</p>";
         } else {
-            echo "Error: " . $stmt->error;
-        }
+            $stmt = $conn->prepare("INSERT INTO tbl_user (user_name, user_image, user_email, user_phone, user_gender, user_type, user_password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssssss", $name, $image, $email, $mobileno, $gender, $type, $passw);
 
-        // Close the statement
-        $stmt->close();
+            if ($stmt->execute()) {
+                header("Location: registration.php?register=success");
+                exit();
+            } else {
+                echo "Error: " . $stmt->error;
+            }
+
+            // Close the statement
+            $stmt->close();
+        }
     }
 }
 ?>
@@ -258,7 +267,7 @@ if (isset($_GET['register']) && $_GET['register'] == 'success') {
 ?>
 <div class="container">
     <h2>Registration Form</h2>
-    <form id="registrationForm" method="post" action="registration.php">    
+    <form id="registrationForm" method="post" action="registration.php" enctype="multipart/form-data">    
         <div class="form-group">
             <label for="name">Name:<span class="error">*</span></label>
             <input type="text" name="user_name" id="user_name" value="<?php echo htmlspecialchars($name); ?>" placeholder="Enter Name (Only Alphabets)">
@@ -297,6 +306,10 @@ if (isset($_GET['register']) && $_GET['register'] == 'success') {
             <input type="radio" name="user_type" value="2" <?php if ($type == 2) echo "checked"; ?>> Seller  
             <span class="error" id="typeErr"><?php echo $typeErr; ?></span>
         </div>
+
+        <label for="user_image">Upload Image:</label>
+        <input type="file" name="user_image">
+        <span class="error" id="typeErr"><?php echo $imageErr; ?></span>
 
         <div class="form-actions">
             <input type="submit" name="submit" value="Submit">

@@ -4,19 +4,21 @@ include 'db_connect.php';
 if (isset($_GET['user_id'])) {
     $user_id = intval($_GET['user_id']); 
 
-    
-    $stmt = $conn->prepare("SELECT user_name, user_email, user_phone, user_gender, user_type FROM tbl_user WHERE user_id = ?");
+    // Query the database for user details
+    $stmt = $conn->prepare("SELECT user_name, user_email, user_phone, user_gender, user_type, user_image FROM tbl_user WHERE user_id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
+        // Set the user variables
         $user_name = $user['user_name'];
         $user_email = $user['user_email'];
         $user_phone = $user['user_phone'];
         $user_gender = $user['user_gender'];
         $user_type = $user['user_type'];
+        $user_image = $user['user_image'];
     } else {
         echo "User not found!";
         exit();
@@ -139,6 +141,14 @@ if (isset($_GET['user_id'])) {
             background-color: #f44336;
             color: white;
         }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
     </style>
 </head>
 <body>
@@ -146,7 +156,15 @@ if (isset($_GET['user_id'])) {
 <div class="container">
     <h2>Edit User</h2>
 
-    <form id="editUserForm">
+    <!-- Show current profile image if available -->
+    <?php if (!empty($user_image)): ?>
+        <div class="form-group">
+            <label>Current Profile Image:</label>
+            <img src="uploads/<?php echo htmlspecialchars($user_image); ?>" alt="Profile Image" class="profile-image">
+        </div>
+    <?php endif; ?>
+
+    <form id="editUserForm" enctype="multipart/form-data">
         <input type="hidden" name="user_id" value="<?php echo $user_id; ?>">
 
         <div class="form-group">
@@ -181,6 +199,11 @@ if (isset($_GET['user_id'])) {
             </select>
         </div>
 
+        <div class="form-group">
+            <label for="user_image">Update Profile Image:</label>
+            <input type="file" id="user_image" name="user_image">
+        </div>
+
         <button type="submit">Update User</button>
     </form>
 
@@ -193,12 +216,14 @@ $(document).ready(function () {
     $('#editUserForm').submit(function (e) {
         e.preventDefault(); 
 
-        var formData = $(this).serialize(); 
+        var formData = new FormData(this); // Use FormData to send file data as well
 
         $.ajax({
             url: 'update_user.php', 
             type: 'POST',
             data: formData, 
+            processData: false, // Important to prevent jQuery from processing the data
+            contentType: false, // Important to prevent jQuery from setting contentType
             dataType: 'json',
             success: function (response) {
                 if (response.success) {

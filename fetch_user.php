@@ -21,7 +21,7 @@ $order_column = isset($columns[$order_column_index]) ? $columns[$order_column_in
 
 $order_dir = ($order_dir === 'asc' || $order_dir === 'desc') ? $order_dir : 'asc';
 
-$sql = "SELECT user_id, user_name, user_email, user_phone, user_gender, user_type 
+$sql = "SELECT user_id, user_name, user_image, user_email, user_phone, user_gender, user_type 
         FROM tbl_user 
         WHERE user_type = ? 
         AND (user_name LIKE ? OR user_email LIKE ? OR user_phone LIKE ?) 

@@ -7,8 +7,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 0) {
 
 $admin_name = $_SESSION['user_name'];
 
-$nameErr = $emailErr = $mobilenoErr = $genderErr = $typeErr = $passwordErr = "";
-$user_name = $user_email = $user_phone = $user_gender = $user_type = $user_password = "";
+$nameErr = $emailErr = $mobilenoErr = $genderErr = $typeErr = $imageErr= $passwordErr = "";
+$user_name = $user_email = $user_phone = $user_gender = $user_type = $image = $user_image = $user_password = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     include 'db_connect.php';
@@ -103,22 +103,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }  
     }
 
-    // If no errors, proceed with inserting into the database
+    $image = $_FILES['user_image']['name'];
+    $targetDir = "uploads/";
+    $targetFile = $targetDir . basename($image);
+    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+
+
     if (empty($nameErr) && empty($emailErr) && empty($mobilenoErr) && empty($genderErr) && empty($typeErr) && empty($passwordErr)) {
         // Hash password for security
-        $hashed_password = password_hash($user_password, PASSWORD_DEFAULT);
-
-        $stmt = $conn->prepare("INSERT INTO tbl_user (user_name, user_email, user_phone, user_gender, user_type, user_password) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $user_name, $user_email, $user_phone, $user_gender, $user_type, $hashed_password);
-
-        if ($stmt->execute()) {
-            $message = "User added successfully!";
+        // $hashed_password = password_hash($user_password, PASSWORD_DEFAULT);
+        if (!move_uploaded_file($_FILES['user_image']['tmp_name'], $targetFile)) {
+            $itemsErr = "<p>Failed to upload the image. Please try again.</p>";
         } else {
-            $message = "Error adding user: " . $stmt->error;
+            // Ensure you are using the correct variable names in the bind_param
+            $stmt = $conn->prepare("INSERT INTO tbl_user (user_name, user_image, user_email, user_phone, user_gender, user_type, user_password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssssss", $user_name, $image, $user_email, $user_phone, $user_gender, $user_type, $user_password);
+    
+            if ($stmt->execute()) {
+                $message = "User added successfully!";
+            } else {
+                $message = "Error adding user: " . $stmt->error;
+            }
+    
+            $stmt->close();
         }
-
-        $stmt->close();
     }
+    
 
     $conn->close();
 }
@@ -240,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <p style="text-align: center; color: <?php echo strpos($message, 'success') !== false ? 'green' : 'red'; ?>;"><?php echo $message; ?></p>
     <?php endif; ?>
 
-    <form method="POST" action="add_user.php">
+    <form method="POST" action="add_user.php" enctype="multipart/form-data">
         <input type="text" name="user_name" placeholder="Name" value="<?php echo htmlspecialchars($user_name); ?>">
         <span class="error"><?php echo $nameErr; ?></span>
         
@@ -264,6 +274,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <input type="password" name="user_password" placeholder="Password" value="<?php echo htmlspecialchars($user_password); ?>">
         <span class="error"><?php echo $passwordErr; ?></span>
+
+        <label for="user_image">Upload Image:</label>
+        <input type="file" name="user_image" required>
+        <span class="error" id="typeErr"><?php echo $imageErr; ?></span>
+
 
         <button class="submit-btn" type="submit">Add User</button>
     </form>
@@ -324,3 +339,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </script>
 </body>
 </html>
+
