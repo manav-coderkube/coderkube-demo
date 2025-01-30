@@ -1,11 +1,18 @@
 <?php
 session_start();
+include 'db_connect.php';
+
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 2) {
     header("Location: login.php");
     exit();
 }
 
-$admin_name = $_SESSION['user_name'];
+$id = $_SESSION['user_id'];
+$seller_name = $_SESSION['user_name'];
+
+$CategoryCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_category WHERE user_id = $id")->fetch_assoc()['count'];
+$SubCategoryCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_subcategories WHERE user_id = $id")->fetch_assoc()['count'];
+$itemsCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_items WHERE user_id = $id")->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -15,129 +22,214 @@ $admin_name = $_SESSION['user_name'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seller Dashboard</title>
     <link rel="stylesheet" href="//cdn.datatables.net/2.2.1/css/dataTables.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        .container { width: 90%; margin: 30px auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h2 { text-align: center; color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        table th, table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        table th { background-color: #4CAF50; color: white; }
-        .logout-btn { display: inline-block; margin: 20px auto; padding: 10px 20px; font-size: 16px; background-color: #FF5733; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .logout-btn:hover { background-color: #C70039; }
-        .welcome { text-align: center; margin-bottom: 20px; font-size: 18px; color: #333; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow-x: auto;
+        }
+
+        .container {
+            margin-left: 260px;
+            padding: 20px;
+            width: calc(100% - 250px);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+
+        .card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: px;
+            width: 100%;
+            flex-wrap: nowrap;
+            padding: 10px;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            font-size: 36px;
+            color: #333;
+        }
+
+        .card p {
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .card a {
+            text-decoration: none;
+            color: #FF5733;
+            font-weight: bold;
+        }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .grid-container {
+            display: flex;
+            gap: 0px;
+            margin-top: 0px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .grid-item {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar a {
+                text-align: center;
+                padding: 10px;
+            }
+
+            .container {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+
+            .card-container, .grid-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .grid-item {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Seller Dashboard</h2>
-    <p class="welcome">Welcome, <?php echo htmlspecialchars($admin_name); ?>!</p>
+    <div class="sidebar">
+        <a href="#">Dashboard</a>
+        <a href="add_category_subcategory.php">Add Category | Sub-Category</a>
+        <a href="view_category_subcategory.php">View Category | Sub-Category</a>
+        <a href="add_items.php">Add Items</a>
+        <a href="view_items.php">View Items</a>
+        <a href="logout.php">Logout</a>
+    </div>
 
-    <table id="userTable" class="display">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Gender</th>
-                <th>Type</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Data will be dynamically populated using AJAX -->
-        </tbody>
-    </table>
+    <div class="container">
+        <h2>Seller Dashboard</h2>
+        <p class="welcome">Welcome, <?php echo htmlspecialchars($seller_name); ?>!</p>
 
-    <form method="post" action="logout.php">
-        <button class="logout-btn" type="submit" name="logout">Logout</button>
-    </form>
-</div>
+        <div class="card-container">
+            <div class="card">
+                <h3><?php echo $CategoryCount; ?></h3>
+                <p><a href="#">Total Category</a></p>
+            </div>
+            <div class="card">
+                <h3><?php echo $SubCategoryCount; ?></h3>
+                <p><a href="#">Total Sub-Category</a></p>
+            </div>
+            <div class="card">
+                <h3><?php echo $itemsCount; ?></h3>
+                <p><a href="#">Total Items</a></p>
+            </div>
+        </div>
 
-<!-- Include jQuery and DataTables -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="//cdn.datatables.net/2.2.1/js/dataTables.min.js"></script>
+        <!-- Two-Part Grid Below the Chart -->
+        <div class="grid-container">
+            <div class="grid-item">
+            <h3>Items Statistics</h3>
+                <canvas id="itemChart"></canvas>
+            </div>
+            <div class="grid-item">
+                <h3>Section 2</h3>
+                <p>Content for the second section.</p>
+            </div>
+        </div>
+    </div>    
 
-<script>
-$(document).ready(function () {
-    $('#userTable').DataTable({
-        processing: true, 
-        serverSide: true, 
-        ajax: {
-            url: 'fetch_user.php', 
-            type: 'POST'
-        },
-        columns: [
-            {
-                render: function (data, type, row, meta) {
-                    return meta.row + meta.settings._iDisplayStart + 1; 
+    <script>
+        $(document).ready(function () {
+            var ctx = document.getElementById('itemChart').getContext('2d');
+            var itemChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Category', 'SubCategory', 'Items'],
+                    datasets: [{
+                        label: 'Total Count',
+                        data: [<?php echo $CategoryCount; ?>, <?php echo $SubCategoryCount; ?>, <?php echo $itemsCount; ?>],
+                        backgroundColor: ['#FF5733', '#33B5E5', '#66BB6A']
+                    }]
                 },
-                orderable: false 
-            },
-            { data: 'user_name' }, 
-            { data: 'user_email' }, 
-            { data: 'user_phone' }, 
-            { data: 'user_gender' }, 
-            { data: 'user_type' },
-            {
-                data: null, 
-                orderable: false, 
-                render: function (data, type, row) {
-                    
-                    return `
-                        <button class="edit-btn" data-id="${row.user_id}" style="background-color: #4CAF50; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">Edit</button>
-                        <button class="delete-btn" data-id="${row.user_id}" style="background-color: #FF5733; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">Delete</button>
-                    `;
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false
                 }
-            }
-        ],
-        paging: true, 
-        info: true, 
-        language: {
-            emptyTable: "No data available" 
-        }
-    });
-
-    
-    $('#userTable').on('click', '.edit-btn', function () {
-        const userId = $(this).data('id'); 
-        window.location.href = `edit_user.php?user_id=${userId}`; 
-    });
-
-    $('#userTable').on('click', '.delete-btn', function () {
-    const userId = $(this).data('id'); 
-    if (confirm("Are you sure you want to delete this user?")) {
-        $.ajax({
-            url: 'delete_user.php', 
-            type: 'POST',
-            data: { user_id: userId },
-            success: function (response) {
-                try {
-                    const data = JSON.parse(response); 
-                    if (data.message) {
-                        alert(data.message); 
-                    } else {
-                        alert("Unexpected response: " + response); 
-                    }
-                    $('#userTable').DataTable().ajax.reload(); 
-                } catch (e) {
-                    alert("Error parsing response: " + e.message);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("An error occurred: " + error);
-            }
+            });
         });
-
-    }else{
-        alert('Confirmation is not received.');
-    }
-});
-
-});
-</script>
-
-
-
+    </script>
 </body>
 </html>

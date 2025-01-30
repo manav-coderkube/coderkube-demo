@@ -7,336 +7,235 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 0) {
 
 $admin_name = $_SESSION['user_name'];
 
-$nameErr = $emailErr = $mobilenoErr = $genderErr = $typeErr = $imageErr= $passwordErr = "";
+$nameErr = $emailErr = $mobilenoErr = $genderErr = $typeErr = $imageErr = $passwordErr = "";
 $user_name = $user_email = $user_phone = $user_gender = $user_type = $image = $user_image = $user_password = "";
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    include 'db_connect.php';
-
-    // Get user input and validate
-    if (empty($_POST["user_name"])) {  
-        $nameErr = "Name is required";  
-    } else {  
-        $user_name = trim($_POST["user_name"]);
-        if (!preg_match("/^(?!\s)(?!.*\s{2,})[a-zA-Z ]+$/", $user_name)) {  
-            $nameErr = "Name should not contain consecutive spaces";  
-        } else {
-            // Check if the name already exists in the database
-            $name_check = "SELECT * FROM tbl_user WHERE user_name = ?";
-            $stmt = $conn->prepare($name_check);
-            $stmt->bind_param("s", $user_name);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
-                $nameErr = "Name is already taken.";
-            }
-            $stmt->close();
-        }
-    }
-
-    // Validate Email
-    if (empty($_POST["user_email"])) {  
-        $emailErr = "Email is required";  
-    } else {  
-        $user_email = trim($_POST["user_email"]);  
-        if (!filter_var($user_email, FILTER_VALIDATE_EMAIL)) {  
-            $emailErr = "Invalid email format";  
-        } else {
-            // Check if the email already exists in the database
-            $email_check = "SELECT * FROM tbl_user WHERE user_email = ?";
-            $stmt = $conn->prepare($email_check);
-            $stmt->bind_param("s", $user_email);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
-                $emailErr = "Email is already taken.";
-            }
-            $stmt->close();
-        }
-    }
-
-    // Validate Mobile No
-    if (empty($_POST["user_phone"])) {  
-        $mobilenoErr = "Mobile no is required";  
-    } else {  
-        $user_phone = trim($_POST["user_phone"]);
-        if (!preg_match("/^[0-9]*$/", $user_phone)) {  
-            $mobilenoErr = "Only numeric value is allowed.";  
-        }  
-        if (strlen($user_phone) != 10) {  
-            $mobilenoErr = "Mobile no must contain 10 digits.";  
-        } else {
-            // Check if the mobile number already exists in the database
-            $mobileno_check = "SELECT * FROM tbl_user WHERE user_phone = ?";
-            $stmt = $conn->prepare($mobileno_check);
-            $stmt->bind_param("s", $user_phone);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
-                $mobilenoErr = "Mobile number is already registered.";
-            }
-            $stmt->close();
-        }
-    }
-
-    // Validate Gender
-    if (!isset($_POST["user_gender"])) {  
-        $genderErr = "Gender is required";  
-    } else {  
-        $user_gender = $_POST["user_gender"];  
-    }
-
-    // Validate Type
-    if (!isset($_POST['user_type'])) {  
-        $typeErr = "Select User type.";  
-    } else {  
-        $user_type = $_POST["user_type"];  
-    }
-
-    // Validate Password
-    if (empty($_POST["user_password"])) {  
-        $passwordErr = "Password is required";  
-    } else {  
-        $user_password = $_POST["user_password"];
-        if (strlen($user_password) < 6) {  
-            $passwordErr = "Password must be at least 6 characters.";  
-        }  
-    }
-
-    $image = $_FILES['user_image']['name'];
-    $targetDir = "uploads/";
-    $targetFile = $targetDir . basename($image);
-    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
-
-
-    if (empty($nameErr) && empty($emailErr) && empty($mobilenoErr) && empty($genderErr) && empty($typeErr) && empty($passwordErr)) {
-        // Hash password for security
-        // $hashed_password = password_hash($user_password, PASSWORD_DEFAULT);
-        if (!move_uploaded_file($_FILES['user_image']['tmp_name'], $targetFile)) {
-            $itemsErr = "<p>Failed to upload the image. Please try again.</p>";
-        } else {
-            // Ensure you are using the correct variable names in the bind_param
-            $stmt = $conn->prepare("INSERT INTO tbl_user (user_name, user_image, user_email, user_phone, user_gender, user_type, user_password) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssssss", $user_name, $image, $user_email, $user_phone, $user_gender, $user_type, $user_password);
-    
-            if ($stmt->execute()) {
-                $message = "User added successfully!";
-            } else {
-                $message = "Error adding user: " . $stmt->error;
-            }
-    
-            $stmt->close();
-        }
-    }
-    
-
-    $conn->close();
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add User</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
+        /* Styles */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f7f7f7;
             margin: 0;
             padding: 0;
         }
 
         .container {
-            width: 90%;
             max-width: 800px;
-            margin: 30px auto;
+            margin: 50px auto;
             background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 30px;
+            border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         h2 {
             text-align: center;
             color: #333;
+            margin-bottom: 20px;
         }
 
-        form {
-            display: flex;
-            flex-direction: column;
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
         }
 
-        input[type="text"], input[type="email"], input[type="password"], select {
+        input, select, button {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 10px;
+            margin: 10px 0 20px 0;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 16px;
         }
 
-        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus {
-            outline-color: #4CAF50;
-        }
-
-        button.submit-btn {
+        button {
             background-color: #4CAF50;
             color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
+            border: none;
         }
 
-        button.submit-btn:hover {
+        button:hover {
             background-color: #45a049;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input, .form-group select {
+            width: calc(100% - 22px);
         }
 
         .error {
             color: red;
             font-size: 14px;
+            text-align: center;
         }
 
-        .welcome {
+        .success {
+            color: green;
+            font-size: 14px;
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 18px;
-            color: #333;
         }
 
         .back-btn {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .back-btn a {
-            font-size: 16px;
-            text-decoration: none;
-            color: #4CAF50;
-        }
-
-        .back-btn a:hover {
-            text-decoration: underline;
-        }
-
-        /* For the Logout button */
-        .logout-btn {
             display: inline-block;
-            margin: 20px auto;
             padding: 10px 20px;
             font-size: 16px;
             background-color: #FF5733;
             color: white;
             border: none;
             border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
             cursor: pointer;
         }
 
-        .logout-btn:hover {
+        .back-btn:hover {
             background-color: #C70039;
         }
-
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h2>Add New User</h2>
+    <h2>Add User</h2>
 
-    <?php if (isset($message)): ?>
-        <p style="text-align: center; color: <?php echo strpos($message, 'success') !== false ? 'green' : 'red'; ?>;"><?php echo $message; ?></p>
-    <?php endif; ?>
-
-    <form method="POST" action="add_user.php" enctype="multipart/form-data">
-        <input type="text" name="user_name" placeholder="Name" value="<?php echo htmlspecialchars($user_name); ?>">
-        <span class="error"><?php echo $nameErr; ?></span>
+    <form id="addUserForm" enctype="multipart/form-data">
+        <input type="text" id="user_name" name="user_name" placeholder="Name" value="<?php echo htmlspecialchars($user_name); ?>">
+        <span class="error" id="nameError"><?php echo $nameErr; ?></span>
         
-        <input type="email" name="user_email" placeholder="Email" value="<?php echo htmlspecialchars($user_email); ?>">
-        <span class="error"><?php echo $emailErr; ?></span>
+        <input type="text" id="user_email" name="user_email" placeholder="Email" value="<?php echo htmlspecialchars($user_email); ?>">
+        <span class="error" id="emailError"><?php echo $emailErr; ?></span>
 
-        <input type="text" name="user_phone" placeholder="Phone" value="<?php echo htmlspecialchars($user_phone); ?>">
-        <span class="error"><?php echo $mobilenoErr; ?></span>
+        <input type="text" id="user_phone" name="user_phone" placeholder="Phone" value="<?php echo htmlspecialchars($user_phone); ?>">
+        <span class="error" id="phoneError"><?php echo $mobilenoErr; ?></span>
 
-        <select name="user_gender">
+        <select id="user_gender" name="user_gender">
             <option value="0" <?php if ($user_gender == 0) echo "selected"; ?>>Male</option>
             <option value="1" <?php if ($user_gender == 1) echo "selected"; ?>>Female</option>
         </select>
-        <span class="error"><?php echo $genderErr; ?></span>
+        <span class="error" id="genderError"><?php echo $genderErr; ?></span>
 
-        <select name="user_type">
+        <select id="user_type" name="user_type">
             <option value="1" <?php if ($user_type == 1) echo "selected"; ?>>User</option>
             <option value="2" <?php if ($user_type == 2) echo "selected"; ?>>Seller</option>
         </select>
-        <span class="error"><?php echo $typeErr; ?></span>
+        <span class="error" id="typeError"><?php echo $typeErr; ?></span>
 
-        <input type="password" name="user_password" placeholder="Password" value="<?php echo htmlspecialchars($user_password); ?>">
-        <span class="error"><?php echo $passwordErr; ?></span>
+        <input type="password" id="user_password" name="user_password" placeholder="Password" value="<?php echo htmlspecialchars($user_password); ?>">
+        <span class="error" id="passwordError"><?php echo $passwordErr; ?></span>
 
         <label for="user_image">Upload Image:</label>
-        <input type="file" name="user_image" required>
-        <span class="error" id="typeErr"><?php echo $imageErr; ?></span>
+        <input type="file" id="user_image" name="user_image">
+        <span class="error" id="imageError"><?php echo $imageErr; ?></span>
 
-
-        <button class="submit-btn" type="submit">Add User</button>
+        <button type="submit">Add User</button>
     </form>
 
-    <div class="back-btn">
-        <a href="index.php">Back to Dashboard</a>
-    </div>
+    <a href="Seller_welcome.php" class="back-btn">Back</a>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.querySelector("form").addEventListener("submit", function(event) {
-    let valid = true;
+$(document).ready(function () {
+    $('#addUserForm').submit(function (e) {
+        e.preventDefault(); // Prevent form submission
 
-    // Reset error messages
-    document.querySelectorAll(".error").forEach(function(span) {
-        span.textContent = '';
+        let isValid = true; // Flag to track form validation status
+
+        // Reset all error messages
+        $('.error').text('');
+
+        // Validate name
+        let name = $('#user_name').val();
+        if (name.length < 3) {
+            isValid = false;
+            $('#nameError').text('Name should be at least 3 characters long.');
+        }
+
+        // Validate email
+        let email = $('#user_email').val();
+        let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        if (!emailPattern.test(email)) {
+            isValid = false;
+            $('#emailError').text('Please enter a valid email address.');
+        }
+
+        // Validate phone number
+        let phone = $('#user_phone').val();
+        let phonePattern = /^[0-9]{10}$/;
+        if (!phonePattern.test(phone)) {
+            isValid = false;
+            $('#phoneError').text('Please enter a valid phone number (10 digits).');
+        }
+
+        // Validate gender selection
+        let gender = $('#user_gender').val();
+        if (!gender) {
+            isValid = false;
+            $('#genderError').text('Please select a gender.');
+        }
+
+        // Validate user type selection
+        let userType = $('#user_type').val();
+        if (!userType) {
+            isValid = false;
+            $('#typeError').text('Please select a user type.');
+        }
+
+        // Validate password
+        let password = $('#user_password').val();
+        if (password.length < 6) {
+            isValid = false;
+            $('#passwordError').text('Password should be at least 6 characters long.');
+        }
+
+        // Validate profile image
+        let image = $('#user_image').val();
+        if (!image) {
+            isValid = false;
+            $('#imageError').text('Please upload a profile image.');
+        }
+
+        // If everything is valid, submit the form via AJAX
+        if (isValid) {
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: 'add_user_ajax.php', 
+                type: 'POST',
+                data: formData, 
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        alert('User added successfully!');
+                        
+                        // window.location.href = 'Seller_welcome.php'; 
+                    } else {
+                        alert('Error in adding user: ' + response.message);
+                    }
+                },
+                error: function () {
+                    alert('There was an error with the request.');
+                }
+            });
+        }
     });
-
-    // Name Validation
-    if (document.querySelector("input[name='user_name']").value === "") {
-        document.querySelector("#nameErr").textContent = "Name is required";
-        valid = false;
-    }
-
-    // Email Validation
-    if (document.querySelector("input[name='user_email']").value === "") {
-        document.querySelector("#emailErr").textContent = "Email is required";
-        valid = false;
-    }
-
-    // Phone Number Validation
-    if (document.querySelector("input[name='user_phone']").value === "") {
-        document.querySelector("#mobilenoErr").textContent = "Phone number is required";
-        valid = false;
-    }
-
-    // Gender Validation
-    if (!document.querySelector("input[name='user_gender']:checked")) {
-        document.querySelector("#genderErr").textContent = "Gender is required";
-        valid = false;
-    }
-
-    // Password Validation
-    if (document.querySelector("input[name='user_password']").value === "") {
-        document.querySelector("#passwordErr").textContent = "Password is required";
-        valid = false;
-    }
-
-    // User Type Validation
-    if (!document.querySelector("input[name='user_type']:checked")) {
-        document.querySelector("#typeErr").textContent = "User type is required";
-        valid = false;
-    }
-
-    if (!valid) {
-        event.preventDefault();
-    }
 });
 </script>
+
 </body>
 </html>
-

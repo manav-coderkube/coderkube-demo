@@ -170,16 +170,19 @@ if (isset($_GET['user_id'])) {
         <div class="form-group">
             <label for="user_name">Name:</label>
             <input type="text" id="user_name" name="user_name" value="<?php echo htmlspecialchars($user_name); ?>" required>
+            <div class="error" id="nameError"></div>
         </div>
 
         <div class="form-group">
             <label for="user_email">Email:</label>
             <input type="email" id="user_email" name="user_email" value="<?php echo htmlspecialchars($user_email); ?>" required>
+            <div class="error" id="emailError"></div>
         </div>
 
         <div class="form-group">
             <label for="user_phone">Phone:</label>
             <input type="text" id="user_phone" name="user_phone" value="<?php echo htmlspecialchars($user_phone); ?>">
+            <div class="error" id="phoneError"></div>
         </div>
 
         <div class="form-group">
@@ -188,6 +191,7 @@ if (isset($_GET['user_id'])) {
                 <option value="0" <?php echo ($user_gender == 0) ? 'selected' : ''; ?>>Male</option>
                 <option value="1" <?php echo ($user_gender == 1) ? 'selected' : ''; ?>>Female</option>
             </select>
+            <div class="error" id="genderError"></div>
         </div>
 
         <div class="form-group">
@@ -197,12 +201,15 @@ if (isset($_GET['user_id'])) {
                 <option value="1" <?php echo ($user_type == 1) ? 'selected' : ''; ?>>User</option>
                 <option value="2" <?php echo ($user_type == 2) ? 'selected' : ''; ?>>Seller</option>
             </select>
+            <div class="error" id="typeError"></div>
         </div>
 
         <div class="form-group">
             <label for="user_image">Update Profile Image:</label>
             <input type="file" id="user_image" name="user_image">
+            <div class="error" id="imageError"></div>
         </div>
+
 
         <button type="submit">Update User</button>
     </form>
@@ -216,14 +223,14 @@ $(document).ready(function () {
     $('#editUserForm').submit(function (e) {
         e.preventDefault(); 
 
-        var formData = new FormData(this); // Use FormData to send file data as well
+        var formData = new FormData(this);
 
         $.ajax({
             url: 'update_user.php', 
             type: 'POST',
             data: formData, 
-            processData: false, // Important to prevent jQuery from processing the data
-            contentType: false, // Important to prevent jQuery from setting contentType
+            processData: false,
+            contentType: false,
             dataType: 'json',
             success: function (response) {
                 if (response.success) {
