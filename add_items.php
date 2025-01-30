@@ -1,25 +1,25 @@
 <?php
 session_start();
+include 'db_connect.php';
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 2) {
     header("Location: login.php");
     exit();
 }
 
 $admin_name = $_SESSION['user_name'];
-$user_id = $_SESSION['user_id']; // Get the user_id from the session
+$user_id = $_SESSION['user_id'];
 
 // Initialize error variables
-$item_nameErr = $item_priceErr = $item_stockErr = $subcategoryErr = $item_imageErr = "";
-$item_name = $item_price = $item_stock = $subcategory_id = $item_image = "";
+$item_nameErr = $item_priceErr = $item_stockErr = $subcategoryErr = $categoryErr = $item_imageErr = "";
+$item_name = $item_price = $item_stock = $subcategory_id = $category_id = $item_image = "";
 
-// Fetch subcategories from the database for dropdown
-include 'db_connect.php';
-$query = "SELECT subcategory_id, subcategory_name FROM tbl_subcategories";
+
+$query = "SELECT category_id, category_name FROM tbl_category";
 $result = $conn->query($query);
-$subcategories = [];
+$categories = [];
 if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $subcategories[] = $row;
+        $categories[] = $row;
     }
 }
 ?>
@@ -156,117 +156,154 @@ if ($result) {
         <a href="logout.php">Logout</a>
     </div>
     <div class="container">
-    <h2>Add Item</h2>
+        <h2>Add Item</h2>
 
-    <form id="addItemForm" enctype="multipart/form-data">
-        <!-- Subcategory Dropdown -->
-        <select id="subcategory_id" name="subcategory_id">
-            <option value="">Select Subcategory</option>
-            <?php foreach ($subcategories as $subcategory): ?>
-                <option value="<?php echo $subcategory['subcategory_id']; ?>"><?php echo $subcategory['subcategory_name']; ?></option>
-            <?php endforeach; ?>
-        </select>
-        <span class="error" id="subcategoryError"><?php echo $subcategoryErr; ?></span>
+        <form id="addItemForm" enctype="multipart/form-data">
+            <!-- category Dropdown -->
+            <select id="category_id" name="category_id">
+                <option value="">Select category</option>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?php echo $category['category_id']; ?>"><?php echo $category['category_name']; ?></option>
+                <?php endforeach; ?>
+            </select>
+            <span class="error" id="categoryError"><?php echo $categoryErr; ?></span>
 
-        <!-- Item Name -->
-        <input type="text" id="item_name" name="item_name" placeholder="Item Name" value="<?php echo htmlspecialchars($item_name); ?>">
-        <span class="error" id="itemNameError"><?php echo $item_nameErr; ?></span>
+            <!-- Subcategory Dropdown -->
+            <select id="subcategory_id" name="subcategory_id">
+                <option value="">Select Subcategory</option>
+                <!-- Subcategories will be loaded dynamically based on category selection -->
+            </select>
+            <span class="error" id="subcategoryError"><?php echo $subcategoryErr; ?></span>
 
-        <!-- Item Price -->
-        <input type="text" id="item_price" name="item_price" placeholder="Item Price" value="<?php echo htmlspecialchars($item_price); ?>">
-        <span class="error" id="itemPriceError"><?php echo $item_priceErr; ?></span>
+            <!-- Item Name -->
+            <input type="text" id="item_name" name="item_name" placeholder="Item Name" value="<?php echo htmlspecialchars($item_name); ?>">
+            <span class="error" id="itemNameError"><?php echo $item_nameErr; ?></span>
 
-        <!-- Item Stock -->
-        <input type="text" id="item_stock" name="item_stock" placeholder="Item Stock" value="<?php echo htmlspecialchars($item_stock); ?>">
-        <span class="error" id="itemStockError"><?php echo $item_stockErr; ?></span>
+            <!-- Item Price -->
+            <input type="text" id="item_price" name="item_price" placeholder="Item Price" value="<?php echo htmlspecialchars($item_price); ?>">
+            <span class="error" id="itemPriceError"><?php echo $item_priceErr; ?></span>
 
-        <!-- Item Image -->
-        <label for="item_image">Upload Image:</label>
-        <input type="file" id="item_image" name="item_image">
-        <span class="error" id="itemImageError"><?php echo $item_imageErr; ?></span>
+            <!-- Item Stock -->
+            <input type="text" id="item_stock" name="item_stock" placeholder="Item Stock" value="<?php echo htmlspecialchars($item_stock); ?>">
+            <span class="error" id="itemStockError"><?php echo $item_stockErr; ?></span>
 
-        <button type="submit">Add Item</button>
-    </form>
+            <!-- Item Image -->
+            <label for="item_image">Upload Image:</label>
+            <input type="file" id="item_image" name="item_image">
+            <span class="error" id="itemImageError"><?php echo $item_imageErr; ?></span>
 
-    <a href="Seller_welcome.php" class="back-btn">Back</a>
-</div>
+            <button type="submit">Add Item</button>
+        </form>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function () {
-    $('#addItemForm').submit(function (e) {
-        e.preventDefault(); // Prevent form submission
+        <a href="Seller_welcome.php" class="back-btn">Back</a>
+    </div>
 
-        let isValid = true; // Flag to track form validation status
-
-        // Reset all error messages
-        $('.error').text('');
-
-        // Validate subcategory selection
-        let subcategory = $('#subcategory_id').val();
-        if (!subcategory) {
-            isValid = false;
-            $('#subcategoryError').text('Please select a subcategory.');
-        }
-
-        // Validate item name
-        let itemName = $('#item_name').val();
-        if (itemName.length < 3) {
-            isValid = false;
-            $('#itemNameError').text('Item name should be at least 3 characters long.');
-        }
-
-        // Validate item price
-        let itemPrice = $('#item_price').val();
-        let pricePattern = /^\d+(\.\d{1,2})?$/;
-        if (!pricePattern.test(itemPrice)) {
-            isValid = false;
-            $('#itemPriceError').text('Please enter a valid price (e.g., 10.99).');
-        }
-
-        // Validate item stock
-        let itemStock = $('#item_stock').val();
-        let stockPattern = /^[0-9]+$/;
-        if (!stockPattern.test(itemStock)) {
-            isValid = false;
-            $('#itemStockError').text('Please enter a valid stock quantity.');
-        }
-
-        // Validate item image
-        let itemImage = $('#item_image').val();
-        if (!itemImage) {
-            isValid = false;
-            $('#itemImageError').text('Please upload an item image.');
-        }
-
-        // If everything is valid, submit the form via AJAX
-        if (isValid) {
-            var formData = new FormData(this);
-            formData.append('user_id', <?php echo $user_id; ?>); // Add user_id from session
-
-            $.ajax({
-                url: 'add_item_ajax.php', 
-                type: 'POST',
-                data: formData, 
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        alert('Item added successfully!');
-                        window.location.href = 'add_items.php';
-                    } else {
-                        alert('Error in adding item: ' + response.message);
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        // Update subcategories based on selected category
+        $('#category_id').change(function () {
+            let categoryId = $(this).val();
+            if (categoryId) {
+                $.ajax({
+                    url: 'fetch_subcategories.php',
+                    type: 'GET',
+                    data: { category_id: categoryId },
+                    success: function (response) {
+                        let subcategories = JSON.parse(response);
+                        let subcategoryDropdown = $('#subcategory_id');
+                        subcategoryDropdown.empty(); // Clear previous options
+                        subcategoryDropdown.append('<option value="">Select Subcategory</option>');
+                        $.each(subcategories, function (index, subcategory) {
+                            subcategoryDropdown.append('<option value="' + subcategory.subcategory_id + '">' + subcategory.subcategory_name + '</option>');
+                        });
                     }
-                },
-                error: function () {
-                    alert('There was an error with the request.');
-                }
-            });
-        }
-    });
-});
-</script>
+                });
+            } else {
+                $('#subcategory_id').html('<option value="">Select Subcategory</option>'); // Reset subcategory dropdown
+            }
+        });
 
+        // Form validation and submission
+        $('#addItemForm').submit(function (e) {
+            e.preventDefault(); // Prevent form submission
+
+            let isValid = true; // Flag to track form validation status
+
+            // Reset all error messages
+            $('.error').text('');
+
+            // Validate category selection
+            let category = $('#category_id').val();
+            if (!category) {
+                isValid = false;
+                $('#categoryError').text('Please select a category.');
+            }
+
+            // Validate subcategory selection
+            let subcategory = $('#subcategory_id').val();
+            if (!subcategory) {
+                isValid = false;
+                $('#subcategoryError').text('Please select a subcategory.');
+            }
+
+            // Validate item name
+            let itemName = $('#item_name').val();
+            if (itemName.length < 3) {
+                isValid = false;
+                $('#itemNameError').text('Item name should be at least 3 characters long.');
+            }
+
+            // Validate item price
+            let itemPrice = $('#item_price').val();
+            let pricePattern = /^\d+(\.\d{1,2})?$/;
+            if (!pricePattern.test(itemPrice)) {
+                isValid = false;
+                $('#itemPriceError').text('Please enter a valid price (e.g., 10.99).');
+            }
+
+            // Validate item stock
+            let itemStock = $('#item_stock').val();
+            let stockPattern = /^[0-9]+$/;
+            if (!stockPattern.test(itemStock)) {
+                isValid = false;
+                $('#itemStockError').text('Please enter a valid stock quantity.');
+            }
+
+            // Validate item image
+            let itemImage = $('#item_image').val();
+            if (!itemImage) {
+                isValid = false;
+                $('#itemImageError').text('Please upload an item image.');
+            }
+
+            // If everything is valid, submit the form via AJAX
+            if (isValid) {
+                var formData = new FormData(this);
+                formData.append('user_id', <?php echo $user_id; ?>); // Add user_id from session
+
+                $.ajax({
+                    url: 'add_item_ajax.php', 
+                    type: 'POST',
+                    data: formData, 
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Item added successfully!');
+                            window.location.href = 'add_items.php';
+                        } else {
+                            alert('Error in adding item: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('There was an error with the request.');
+                    }
+                });
+            }
+        });
+    });
+    </script>
 </body>
 </html>

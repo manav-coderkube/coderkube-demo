@@ -7,7 +7,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 2) {
     exit();
 }
 
-if (isset($_POST['subcategory_id'], $_POST['item_name'], $_POST['item_price'], $_POST['item_stock'], $_FILES['item_image'], $_POST['user_id'])) {
+if (isset($_POST['category_id'],$_POST['subcategory_id'], $_POST['item_name'], $_POST['item_price'], $_POST['item_stock'], $_FILES['item_image'], $_POST['user_id'])) {
+    $category_id = $_POST['category_id'];
     $subcategory_id = $_POST['subcategory_id'];
     $item_name = $_POST['item_name'];
     $item_price = $_POST['item_price'];
@@ -22,9 +23,9 @@ if (isset($_POST['subcategory_id'], $_POST['item_name'], $_POST['item_price'], $
 
     if (move_uploaded_file($item_image['tmp_name'], $target_file)) {
         // Prepare SQL query to insert item
-        $query = "INSERT INTO tbl_items (subcategory_id, item_name, item_image, item_price, item_stock, user_id) VALUES (?, ?, ?, ?, ?, ?)";
+        $query = "INSERT INTO tbl_items (category_id, subcategory_id, item_name, item_image, item_price, item_stock, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("issdii", $subcategory_id, $item_name, $image_name, $item_price, $item_stock, $user_id);
+        $stmt->bind_param("iissdii", $category_id,$subcategory_id, $item_name, $image_name, $item_price, $item_stock, $user_id);
 
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Item added successfully']);

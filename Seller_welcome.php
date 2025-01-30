@@ -186,15 +186,15 @@ $itemsCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_items WHERE user_i
         <div class="card-container">
             <div class="card">
                 <h3><?php echo $CategoryCount; ?></h3>
-                <p><a href="#">Total Category</a></p>
+                <p><a href="view_category_subcategory.php">Total Category</a></p>
             </div>
             <div class="card">
                 <h3><?php echo $SubCategoryCount; ?></h3>
-                <p><a href="#">Total Sub-Category</a></p>
+                <p><a href="view_category_subcategory.php">Total Sub-Category</a></p>
             </div>
             <div class="card">
                 <h3><?php echo $itemsCount; ?></h3>
-                <p><a href="#">Total Items</a></p>
+                <p><a href="view_items.php">Total Items</a></p>
             </div>
         </div>
 
