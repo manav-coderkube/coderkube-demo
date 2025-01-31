@@ -12,6 +12,9 @@ $admin_name = $_SESSION['user_name'];
 $AdminCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_user WHERE user_type = 0")->fetch_assoc()['count'];
 $UserCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_user WHERE user_type = 1")->fetch_assoc()['count'];
 $SellerCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_user WHERE user_type = 2")->fetch_assoc()['count'];
+$OrderCountP = $conn->query("SELECT COUNT(*) AS count FROM tbl_orders WHERE order_status = 0")->fetch_assoc()['count'];
+$OrderCountC = $conn->query("SELECT COUNT(*) AS count FROM tbl_orders WHERE order_status = 1")->fetch_assoc()['count'];
+$OrderCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_orders WHERE order_status = 2")->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -175,6 +178,8 @@ $SellerCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_user WHERE user_t
         <a href="Admin_manage.php">Manage Admin</a>
         <a href="User_manage.php">Manage Users</a>
         <a href="Seller_manage.php">Manage Seller</a>
+        <a href="Items_manage.php">Manage Items</a>
+        <a href="Order_manage.php">Manage Orders</a>
         <a href="logout.php">Logout</a>
     </div>
 
@@ -195,6 +200,14 @@ $SellerCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_user WHERE user_t
                 <h3><?php echo $SellerCount; ?></h3>
                 <p><a href="Seller_manage.php">Total Seller</a></p>
             </div>
+            <div class="card">
+                <h3><?php echo $OrderCountP; ?></h3>
+                <p><a href="">Total Order [Panding]</a></p>
+            </div>
+            <div class="card">
+                <h3><?php echo $OrderCountC; ?></h3>
+                <p><a href="">Total Order [Confirm]</a></p>
+            </div>
         </div>
 
         <!-- Two-Part Grid Below the Chart -->
@@ -204,8 +217,8 @@ $SellerCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_user WHERE user_t
                 <canvas id="userChart"></canvas>
             </div>
             <div class="grid-item">
-                <h3>Section 2</h3>
-                <p>Content for the second section.</p>
+            <h3>Order Statistics</h3>
+            <canvas id="orderChart"></canvas>
             </div>
         </div>
     </div>    
@@ -220,6 +233,23 @@ $SellerCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_user WHERE user_t
                     datasets: [{
                         label: 'Total Count',
                         data: [<?php echo $AdminCount; ?>, <?php echo $UserCount; ?>, <?php echo $SellerCount; ?>],
+                        backgroundColor: ['#FF5733', '#33B5E5', '#66BB6A']
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false
+                }
+            });
+
+            var ctx1 = document.getElementById('orderChart').getContext('2d');
+            var userChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Panding', 'Confirm', 'Cancel'],
+                    datasets: [{
+                        label: 'Total Order',
+                        data: [<?php echo $OrderCountP; ?>, <?php echo $OrderCountC; ?>, <?php echo $OrderCount; ?>],
                         backgroundColor: ['#FF5733', '#33B5E5', '#66BB6A']
                     }]
                 },
