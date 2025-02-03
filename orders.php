@@ -87,7 +87,7 @@ $result = $stmt->get_result();
         cursor: pointer;
         margin-top: 20px;
     }
-    .cancel-btn, .continue-btn {
+    .cancel-btn, .continue-btn, .Pdf-btn {
         padding: 8px 16px;
         font-size: 14px;
         background-color: red;
@@ -97,6 +97,9 @@ $result = $stmt->get_result();
         cursor: pointer;
     }
     .continue-btn {
+        background-color: green;
+    }
+    .Pdf-btn {
         background-color: green;
     }
 </style>
@@ -142,6 +145,8 @@ $result = $stmt->get_result();
                     <div class="order-actions">
                         <?php if ($order['order_status'] == 0): ?>
                             <button class="cancel-btn" onclick="updateOrderStatus(<?php echo $order['order_id']; ?>, 'cancel')">Cancel Order</button>
+                        <?php elseif ($order['order_status'] == 1): ?>
+                            <button class="Pdf-btn" onclick="downloadBill(<?php echo $order['order_id']; ?>)">Bill Download</button>
                         <?php elseif ($order['order_status'] == 2): ?>
                             <button class="continue-btn" onclick="updateOrderStatus(<?php echo $order['order_id']; ?>, 'continue')">Continue Order</button>
                         <?php endif; ?>
@@ -157,44 +162,62 @@ $result = $stmt->get_result();
 </div>
 
 <script>
-// AJAX function to handle order status update
-function updateOrderStatus(orderId, action) {
-    $.ajax({
-        url: 'process_order_status.php',
-        type: 'POST',
-        data: {
-            order_id: orderId,
-            action: action
-        },
-        success: function(response) {
-            var result = JSON.parse(response);
-            
-            if (result.success) {
-                var orderElement = $('#order-' + orderId);
-                var statusElement = orderElement.find('.status');
-                var actionButtons = orderElement.find('.order-actions');
+    function downloadBill(orderId) {
+        var form = document.createElement("form");
+        form.method = "POST";
+        form.action = "bill_download.php";
+        form.target = "_blank";
 
-                if (action == 'cancel') {
-                    statusElement.text('Failed').removeClass('pending').addClass('failed');
-                    actionButtons.html('<button class="continue-btn">Continue Order</button>');
-                } else if (action == 'continue') {
-                    statusElement.text('Pending').removeClass('failed').addClass('pending');
-                    actionButtons.html('<button class="cancel-btn">Cancel Order</button>');
+        var input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "order_id";
+        input.value = orderId;
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+    
+    function updateOrderStatus(orderId, action) {
+        $.ajax({
+            url: 'process_order_status.php',
+            type: 'POST',
+            data: {
+                order_id: orderId,
+                action: action
+            },
+            success: function(response) {
+                var result = JSON.parse(response);
+                
+                if (result.success) {
+                    var orderElement = $('#order-' + orderId);
+                    var statusElement = orderElement.find('.status');
+                    var actionButtons = orderElement.find('.order-actions');
+
+                    if (action == 'cancel') {
+                        statusElement.text('Failed').removeClass('pending').addClass('failed');
+                        actionButtons.html('<button class="continue-btn">Continue Order</button>');
+                    } else if (action == 'continue') {
+                        statusElement.text('Pending').removeClass('failed').addClass('pending');
+                        actionButtons.html('<button class="cancel-btn">Cancel Order</button>');
+                    }
+
+                    actionButtons.find('button').on('click', function() {
+                        var newAction = $(this).hasClass('cancel-btn') ? 'cancel' : 'continue';
+                        updateOrderStatus(orderId, newAction);
+                    });
+                } else {
+                    alert('Error: ' + result.message);
                 }
-
-                actionButtons.find('button').on('click', function() {
-                    var newAction = $(this).hasClass('cancel-btn') ? 'cancel' : 'continue';
-                    updateOrderStatus(orderId, newAction);
-                });
-            } else {
-                alert('Error: ' + result.message);
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
             }
-        },
-        error: function() {
-            alert('An error occurred. Please try again.');
-        }
-    });
-}
+        });
+        
+
+    }
 </script>
 
 <?php

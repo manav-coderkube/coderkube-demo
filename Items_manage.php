@@ -170,7 +170,7 @@ $admin_name = $_SESSION['user_name'];
         <a href="Admin_manage.php">Manage Admin</a>
         <a href="User_manage.php">Manage Users</a>
         <a href="Seller_manage.php">Manage Seller</a>
-        <a href="#">Manage Items</a>
+        <a href="Items_manage.php">Manage Items</a>
         <a href="Order_manage.php">Manage Orders</a>
         <a href="logout.php">Logout</a>
     </div>
@@ -197,10 +197,6 @@ $admin_name = $_SESSION['user_name'];
                 <!-- Data will be dynamically populated using AJAX -->
             </tbody>
         </table>
-
-        <form method="post" action="logout.php">
-            <button class="logout-btn" type="submit" name="logout">Logout</button>
-        </form>
     </div>
 
     <!-- Modal for editing item -->

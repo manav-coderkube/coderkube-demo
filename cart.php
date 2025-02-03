@@ -72,7 +72,7 @@ include 'user_layout.php';
 <div id="cart-container" class="card-container">
     <!-- Cart items will be loaded dynamically via AJAX -->
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
@@ -123,14 +123,27 @@ include 'user_layout.php';
                     item_id: itemId
                 },
                 success: function(response) {
-                    alert('Removing item from cart.');
-                    fetchCartItems();
+                    Swal.fire({
+                        title: 'Removed!',
+                        text: 'Item has been removed from your cart.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // After SweetAlert is closed, refresh the cart items
+                        fetchCartItems();
+                    });
                 },
                 error: function() {
-                    alert('Error removing item from cart.');
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'There was an issue removing the item from the cart.',
+                        icon: 'error',
+                        confirmButtonText: 'Try Again'
+                    });
                 }
             });
         });
+
 
         $(document).on('click', '.buy-item-btn', function() {
             var itemId = $(this).data('item-id');
@@ -143,13 +156,28 @@ include 'user_layout.php';
                     item_id: itemId
                 },
                 success: function(response) {
-                    window.location.href = 'buy_item.php?item_id=' + itemId;
-                    // fetchCartItems();  // Refresh cart after purchase
+                    // Ensure response is success (optional)
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Item select successfully!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // After SweetAlert is closed, redirect to buy_item.php
+                        window.location.href = 'buy_item.php?item_id=' + itemId;
+                    });
                 },
                 error: function() {
-                    alert('Error purchasing item.');
+                    // Handle the error with SweetAlert
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'There was an issue purchasing the item.',
+                        icon: 'error',
+                        confirmButtonText: 'Try Again'
+                    });
                 }
             });
         });
+
     });
 </script>

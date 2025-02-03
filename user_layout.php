@@ -93,15 +93,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 1) { // Assuming u
             background-color: #575757;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <!-- Navbar -->
     <div class="navbar">
         <div class="logo">
-            <div>OnStore</div>
+            <a href="User_welcome.php" style="all: unset;cursor: pointer;"><div>OnStore</div></a>
             <small>all in one</small>
         </div>
-        <input type="text" placeholder="Search...">
+        <!-- <input type="text" placeholder="Search..."> -->
         <div>
             <a href="User_welcome.php">Home</a>
             <a href="store.php">Store</a>
@@ -113,10 +114,28 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 1) { // Assuming u
                 <a href="#" class="dropdown-toggle">Profile <i class="fas fa-caret-down"></i></a>
                 <div class="dropdown-content">
                     <a href="view_profile.php">View Profile</a>
-                    <a href="logout.php">Log Out</a>
+                    <a href="javascript:void(0);" onclick="confirmLogout()">Log Out</a>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you really want to log out?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Log out',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // If confirmed, redirect to the logout page
+                    window.location.href = 'logout.php';
+                }
+            });
+        }
+    </script>
+
 </body>
 </html>

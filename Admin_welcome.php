@@ -172,8 +172,9 @@ $OrderCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_orders WHERE order
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <a href="#">Dashboard</a>
+    <div class="sidebar" id="sidebar">
+        <button class="toggle-btn" id="toggleBtn">≡</button>
+        <a href="Admin_welcome.php">Dashboard</a>
         <a href="add_user.php">Add User</a>
         <a href="Admin_manage.php">Manage Admin</a>
         <a href="User_manage.php">Manage Users</a>
@@ -202,11 +203,11 @@ $OrderCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_orders WHERE order
             </div>
             <div class="card">
                 <h3><?php echo $OrderCountP; ?></h3>
-                <p><a href="">Total Order [Panding]</a></p>
+                <p><a href="Order_manage.php">Total Order [Panding]</a></p>
             </div>
             <div class="card">
                 <h3><?php echo $OrderCountC; ?></h3>
-                <p><a href="">Total Order [Confirm]</a></p>
+                <p><a href="Order_manage.php">Total Order [Confirm]</a></p>
             </div>
         </div>
 
@@ -225,6 +226,15 @@ $OrderCount = $conn->query("SELECT COUNT(*) AS count FROM tbl_orders WHERE order
 
     <script>
         $(document).ready(function () {
+            const sidebar = $('#sidebar');
+            const mainContainer = $('#mainContainer');
+            const toggleBtn = $('#toggleBtn');
+
+            toggleBtn.click(function () {
+                sidebar.toggleClass('collapsed');
+                mainContainer.toggleClass('collapsed');
+            });
+
             var ctx = document.getElementById('userChart').getContext('2d');
             var userChart = new Chart(ctx, {
                 type: 'line',
